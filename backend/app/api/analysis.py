@@ -41,6 +41,22 @@ async def analyze_resume(
             if resume_file:
                 yield f"data: {json.dumps({'progress': 10, 'message': 'Processing uploaded file...'})}\n\n"
                 try:
+                    # SECURITY FIX: Validate file size before processing
+                    content = await resume_file.read()
+                    file_size = len(content)
+                    max_size = 10 * 1024 * 1024  # 10MB
+                    
+                    if file_size > max_size:
+                        yield f"data: {json.dumps({'error': 'File size exceeds maximum allowed size of 10MB'})}\n\n"
+                        return
+                    
+                    if file_size == 0:
+                        yield f"data: {json.dumps({'error': 'Uploaded file is empty'})}\n\n"
+                        return
+                    
+                    # Reset file pointer after reading
+                    await resume_file.seek(0)
+                    
                     file_path = await file_service.save_upload_file(resume_file)
                     final_resume_text = await file_service.extract_text_from_file(file_path)
                     yield f"data: {json.dumps({'progress': 20, 'message': 'File processed successfully'})}\n\n"
