@@ -29,8 +29,6 @@ services:
       - DEBUG=False
     env_file:
       - ./backend/.env
-    ports:
-      - "8000:8000"
     volumes:
       - ./backend/uploads:/app/uploads
     depends_on:
